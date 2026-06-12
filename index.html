@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WC26 Draft Comp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#0A3826;
+  --pitch-deep:#062418;
+  --pitch-line:rgba(242,239,230,.16);
+  --chalk:#F2EFE6;
+  --chalk-dim:rgba(242,239,230,.62);
+  --gold:#E0B43F;
+  --gold-deep:#B68A1E;
+  --card:#0E4530;
+  --card-edge:rgba(242,239,230,.10);
+  --red:#D6553F;
+  --display:'Anton',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+  --body:'Barlow',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--pitch-deep);
+  color:var(--chalk);
+  font-family:var(--body);
+  min-height:100vh;
+  font-size:16px;
+  line-height:1.45;
+}
+/* ---------- header with centre-circle chalk motif ---------- */
+header{
+  position:relative;
+  background:var(--pitch);
+  border-bottom:2px solid var(--pitch-line);
+  overflow:hidden;
+  padding:26px 18px 18px;
+}
+header::before{
+  content:"";
+  position:absolute;
+  width:340px;height:340px;
+  border:2px solid var(--pitch-line);
+  border-radius:50%;
+  top:-170px;right:-90px;
+  pointer-events:none;
+}
+header::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:34px;
+  border-top:2px solid var(--pitch-line);
+  pointer-events:none;
+}
+.kick{
+  font-family:var(--cond);
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  font-size:.78rem;
+  color:var(--gold);
+}
+h1{
+  font-family:var(--display);
+  font-size:clamp(2rem,7vw,3rem);
+  line-height:1.02;
+  letter-spacing:.01em;
+  text-transform:uppercase;
+  margin-top:4px;
+}
+h1 .yr{color:var(--gold)}
+.pot{
+  position:relative;
+  display:inline-block;
+  margin-top:10px;
+  font-family:var(--cond);
+  font-weight:600;
+  font-size:.85rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--pitch-deep);
+  background:var(--gold);
+  padding:3px 10px 2px;
+  border-radius:3px;
+}
+/* ---------- tab bar ---------- */
+nav{
+  display:flex;
+  background:var(--pitch);
+  border-bottom:2px solid var(--pitch-line);
+  position:sticky;top:0;z-index:50;
+}
+nav button{
+  flex:1;
+  background:none;border:none;
+  font-family:var(--cond);
+  font-weight:600;
+  font-size:.95rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--chalk-dim);
+  padding:13px 4px 11px;
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+}
+nav button.on{color:var(--gold);border-bottom-color:var(--gold)}
+nav button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+main{max-width:760px;margin:0 auto;padding:20px 14px 90px}
+.page{display:none}
+.page.on{display:block}
+h2{
+  font-family:var(--display);
+  text-transform:uppercase;
+  font-size:1.35rem;
+  letter-spacing:.02em;
+  margin-bottom:4px;
+}
+.sub{color:var(--chalk-dim);font-size:.92rem;margin-bottom:18px}
+.feed{
+  display:inline-block;
+  font-family:var(--cond);font-weight:600;
+  font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--card-edge);
+  border-radius:4px;
+  padding:2px 8px;
+  margin-bottom:14px;
+  color:var(--chalk-dim);
+}
+.feed.live{color:var(--gold);border-color:var(--gold-deep)}
+.feed.live::before{content:"●";margin-right:6px}
+/* ---------- ladder ---------- */
+.ladder{display:flex;flex-direction:column;gap:10px}
+.rung{
+  background:var(--card);
+  border:1px solid var(--card-edge);
+  border-radius:10px;
+  padding:14px 14px 12px;
+  display:grid;
+  grid-template-columns:44px 1fr auto;
+  gap:0 12px;
+  align-items:center;
+}
+.rung.leader{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.pos{
+  font-family:var(--display);
+  font-size:1.6rem;
+  color:var(--chalk-dim);
+  text-align:center;
+}
+.rung.leader .pos{color:var(--gold)}
+.pname{font-family:var(--cond);font-weight:700;font-size:1.25rem;letter-spacing:.02em;text-transform:uppercase}
+.ptotal{
+  font-family:var(--display);
+  font-size:1.9rem;
+  color:var(--gold);
+  font-variant-numeric:tabular-nums;
+  text-align:right;
+}
+.pbreak{
+  grid-column:2/4;
+  display:flex;flex-wrap:wrap;gap:4px 14px;
+  margin-top:6px;
+  font-size:.82rem;color:var(--chalk-dim);
+  font-variant-numeric:tabular-nums;
+}
+.pteams{
+  grid-column:1/4;
+  margin-top:9px;padding-top:9px;
+  border-top:1px dashed var(--pitch-line);
+  display:flex;flex-wrap:wrap;gap:5px;
+}
+.chip{
+  font-family:var(--cond);font-weight:600;
+  font-size:.8rem;letter-spacing:.04em;
+  background:var(--pitch-deep);
+  border:1px solid var(--card-edge);
+  border-radius:4px;
+  padding:2px 7px;
+  white-space:nowrap;
+}
+.chip b{color:var(--gold);font-weight:700;margin-left:5px;font-variant-numeric:tabular-nums}
+.chip.out{opacity:.45;text-decoration:line-through}
+.chip.out b{text-decoration:none}
+.chip.champ{border-color:var(--gold);color:var(--gold)}
+/* ---------- teams board ---------- */
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.grp{
+  background:var(--card);
+  border:1px solid var(--card-edge);
+  border-radius:10px;
+  overflow:hidden;
+}
+.grp h3{
+  font-family:var(--cond);font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  font-size:.78rem;color:var(--gold);
+  padding:7px 10px 5px;
+  border-bottom:1px solid var(--card-edge);
+}
+.grp ul{list-style:none}
+.grp li{
+  display:flex;justify-content:space-between;align-items:baseline;gap:6px;
+  padding:6px 10px;
+  border-bottom:1px solid rgba(242,239,230,.05);
+  font-size:.86rem;
+}
+.grp li:last-child{border-bottom:none}
+.grp li.out .tname{opacity:.45;text-decoration:line-through}
+.tname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tname b{color:var(--gold);text-decoration:none}
+.owner{
+  font-family:var(--cond);font-weight:700;
+  font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--pitch-deep);
+  background:var(--chalk-dim);
+  border-radius:3px;padding:1px 5px;
+  flex-shrink:0;
+}
+.owner.free{background:none;color:var(--chalk-dim);border:1px dashed var(--pitch-line)}
+/* ---------- rules ---------- */
+table.rules{
+  width:100%;
+  border-collapse:collapse;
+  background:var(--card);
+  border:1px solid var(--card-edge);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:16px;
+}
+table.rules th,table.rules td{
+  text-align:left;
+  padding:9px 12px;
+  border-bottom:1px solid rgba(242,239,230,.06);
+  font-size:.92rem;
+}
+table.rules th{
+  font-family:var(--cond);font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  font-size:.76rem;color:var(--gold);
+  background:rgba(0,0,0,.18);
+}
+table.rules td:last-child{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  font-weight:600;color:var(--gold);
+}
+.note{
+  font-size:.85rem;color:var(--chalk-dim);
+  border-left:3px solid var(--gold);
+  padding:2px 0 2px 10px;
+  margin:12px 0;
+}
+@media (prefers-reduced-motion:no-preference){
+  .rung{transition:transform .15s ease}
+}
+@media (max-width:420px){
+  nav button{font-size:.84rem;letter-spacing:.05em}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kick">5 punters · 8 teams each · live scores</div>
+  <h1>World Cup <span class="yr">'26</span> Draft Comp</h1>
+  <div class="pot">Pot: $100</div>
+</header>
+
+<nav>
+  <button class="on" data-page="ladder">Ladder</button>
+  <button data-page="teams">Teams</button>
+  <button data-page="rules">Rules</button>
+</nav>
+
+<main>
+  <section id="ladder" class="page on">
+    <h2>The Ladder</h2>
+    <p class="sub" id="ladderSub"></p>
+    <div class="feed" id="feedBadge">Loading scores…</div>
+    <div class="ladder" id="ladderBody"></div>
+  </section>
+
+  <section id="teams" class="page">
+    <h2>Team Board</h2>
+    <p class="sub">All 48 teams by group — owner and points so far.</p>
+    <div class="groups" id="teamsBody"></div>
+  </section>
+
+  <section id="rules" class="page">
+    <h2>Rules &amp; Scoring</h2>
+    <p class="sub">$20 in each. Snake draft done, 8 teams per player — 40 of the 48 teams owned, the rest run free.</p>
+
+    <table class="rules">
+      <tr><th colspan="2">Team finishing position</th></tr>
+      <tr><td>Winner</td><td>16</td></tr>
+      <tr><td>Runner-up</td><td>12</td></tr>
+      <tr><td>Third place</td><td>9</td></tr>
+      <tr><td>Fourth place</td><td>8</td></tr>
+      <tr><td>Out in quarter-finals</td><td>6</td></tr>
+      <tr><td>Out in round of 16</td><td>4</td></tr>
+      <tr><td>Out in round of 32</td><td>2</td></tr>
+      <tr><td>Out in group stage</td><td>0</td></tr>
+      <tr><td>Every goal your team scores</td><td>0.25</td></tr>
+    </table>
+
+    <table class="rules">
+      <tr><th colspan="2">Awards — won by a player from your team</th></tr>
+      <tr><td>Golden Ball</td><td>5</td></tr>
+      <tr><td>Golden Boot</td><td>5</td></tr>
+      <tr><td>Golden Glove</td><td>3</td></tr>
+      <tr><td>Most Assists</td><td>3</td></tr>
+      <tr><td>Team of the Tournament player (each)</td><td>1</td></tr>
+    </table>
+
+    <p class="note">If an award is shared between players from teams owned by two different people, both owners get full points.</p>
+    <p class="note">Finishing points are not cumulative — a team scores the points for where it ends up, once. Reaching a stage banks those points immediately.</p>
+    <p class="note">Goals use the 120-minute score — penalty shootout goals don't count. Own goals count for the team awarded the goal on the scoresheet.</p>
+  </section>
+</main>
+
+<script>
+/* ================================================================
+   DATA — the only bits you ever edit by hand.
+   Scores and eliminations come in automatically from the live feed.
+   ================================================================ */
+
+// 1. PICKS — locked in on draft night.
+const PICKS = {
+  "Joel": ["Spain", "Belgium", "Croatia", "Senegal", "South Korea", "Ghana", "Czech Republic", "Jordan"],
+  "Gidon": ["France", "USA", "Colombia", "Ecuador", "Austria", "Sweden", "Algeria", "DR Congo"],
+  "Rami": ["Portugal", "Netherlands", "Morocco", "Japan", "Canada", "Scotland", "South Africa", "New Zealand"],
+  "Ezra": ["England", "Germany", "Norway", "Mexico", "Türkiye", "Paraguay", "Iran", "Saudi Arabia"],
+  "Yonnie": ["Argentina", "Brazil", "Switzerland", "Uruguay", "Egypt", "Ivory Coast", "Australia", "Bosnia & Herzegovina"],
+};
+
+// 2. AWARDS — add at the end of the tournament. team = the national
+//    team the award winner plays for. If shared, add one line per team.
+//    award must be one of: "ball" | "boot" | "glove" | "assists" | "tot"
+const AWARDS = [
+  // { award: "ball", team: "Argentina", player: "Messi" },
+  // { award: "tot",  team: "France",    player: "Mbappé" },
+];
+
+// 3. MANUAL_OVERRIDES — normally stays empty. Use it only if the feed
+//    gets something wrong or goes down. Anything here beats the feed.
+//    finish: "group" | "r32" | "r16" | "qf" | "fourth" | "third" | "runnerup" | "winner"
+const MANUAL_OVERRIDES = {
+  goals: {
+    // "Brazil": 7,
+  },
+  finish: {
+    // "Brazil": "qf",
+  },
+};
+
+// 4. Optional banter line shown under the ladder heading.
+const STATUS_NOTE = "Free agents: Qatar, Haiti, Curaçao, Tunisia, Cape Verde, Iraq, Uzbekistan, Panama.";
+
+/* ================================================================
+   Everything below here just makes it work. No need to touch it.
+   ================================================================ */
+
+const GROUPS = {
+  A: ["Mexico","South Korea","South Africa","Czech Republic"],
+  B: ["Canada","Bosnia & Herzegovina","Qatar","Switzerland"],
+  C: ["Brazil","Morocco","Haiti","Scotland"],
+  D: ["USA","Paraguay","Australia","Türkiye"],
+  E: ["Germany","Curaçao","Ivory Coast","Ecuador"],
+  F: ["Netherlands","Japan","Sweden","Tunisia"],
+  G: ["Belgium","Egypt","Iran","New Zealand"],
+  H: ["Spain","Cape Verde","Saudi Arabia","Uruguay"],
+  I: ["France","Senegal","Iraq","Norway"],
+  J: ["Argentina","Algeria","Austria","Jordan"],
+  K: ["Portugal","DR Congo","Uzbekistan","Colombia"],
+  L: ["England","Croatia","Ghana","Panama"],
+};
+
+const FINISH_PTS = {group:0, r32:2, r16:4, qf:6, fourth:8, third:9, runnerup:12, winner:16};
+const FINISH_LBL = {group:"Out in groups", r32:"R32", r16:"R16", qf:"QF", fourth:"4th", third:"3rd", runnerup:"Final", winner:"CHAMPS"};
+const AWARD_PTS  = {ball:5, boot:5, glove:3, assists:3, tot:1};
+const AWARD_LBL  = {ball:"Golden Ball", boot:"Golden Boot", glove:"Golden Glove", assists:"Most Assists", tot:"Team of Tournament"};
+
+/* ---------- team-name matching (feed names → draw names) ---------- */
+function normName(s){
+  return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+}
+const CANON = (() => {
+  const aliases = {
+    "korearepublic":"South Korea", "southkorea":"South Korea",
+    "czechia":"Czech Republic", "czechrepublic":"Czech Republic",
+    "bosniaandherzegovina":"Bosnia & Herzegovina", "bosniaherzegovina":"Bosnia & Herzegovina",
+    "unitedstates":"USA", "unitedstatesofamerica":"USA", "usa":"USA",
+    "turkey":"Türkiye", "turkiye":"Türkiye",
+    "cotedivoire":"Ivory Coast", "ivorycoast":"Ivory Coast",
+    "iriran":"Iran", "iranislamicrepublic":"Iran",
+    "caboverde":"Cape Verde", "capeverde":"Cape Verde", "capeverdeislands":"Cape Verde",
+    "congodr":"DR Congo", "drcongo":"DR Congo", "democraticrepublicofthecongo":"DR Congo", "drcongokinshasa":"DR Congo",
+    "curacao":"Curaçao",
+    "saudiarabia":"Saudi Arabia",
+    "newzealand":"New Zealand",
+    "southafrica":"South Africa",
+  };
+  const m = {};
+  for (const [k, v] of Object.entries(aliases)) m[k] = v;
+  for (const teams of Object.values(GROUPS)) for (const t of teams) m[normName(t)] = t;
+  return m;
+})();
+function canonTeam(apiName){ return CANON[normName(apiName)] || null; }
+
+/* ---------- stage handling ---------- */
+function normStage(s){
+  switch (s) {
+    case "GROUP_STAGE": return "GROUP_STAGE";
+    case "LAST_32": case "ROUND_OF_32": case "PLAYOFF_ROUND": return "LAST_32";
+    case "LAST_16": case "ROUND_OF_16": return "LAST_16";
+    case "QUARTER_FINALS": case "QUARTER_FINAL": return "QUARTER_FINALS";
+    case "SEMI_FINALS": case "SEMI_FINAL": return "SEMI_FINALS";
+    case "THIRD_PLACE": case "THIRD_PLACE_PLAYOFF": case "PLAYOFF_FOR_THIRD_PLACE": return "THIRD_PLACE";
+    case "FINAL": return "FINAL";
+    default: return s || null;
+  }
+}
+// Points a team has banked just by turning up to a knockout stage.
+const STAGE_BASE = { LAST_32:"r32", LAST_16:"r16", QUARTER_FINALS:"qf", SEMI_FINALS:"fourth", FINAL:"runnerup" };
+
+/* ---------- compute results from the match feed ---------- */
+function blankResults(){
+  const r = {};
+  for (const teams of Object.values(GROUPS)) for (const t of teams)
+    r[t] = { goals: 0, finish: null, eliminated: false };
+  return r;
+}
+function bump(res, t, key){
+  if (!res[t]) return;
+  if (res[t].finish == null || FINISH_PTS[key] > FINISH_PTS[res[t].finish]) res[t].finish = key;
+}
+function computeFromMatches(matches){
+  const res = blankResults();
+  const koTeams = new Set();
+  let r32Slots = 0;
+
+  for (const m of matches){
+    const stage = normStage(m.stage);
+    const home = canonTeam(m.home), away = canonTeam(m.away);
+    const counted = ["FINISHED","IN_PLAY","PAUSED","LIVE"].includes(m.status);
+
+    // goals — 120-minute score, shootout excluded
+    if (counted && m.ft){
+      if (home && res[home]) res[home].goals += (m.ft.home || 0);
+      if (away && res[away]) res[away].goals += (m.ft.away || 0);
+    }
+
+    // banking stage-reached points
+    if (stage && STAGE_BASE[stage]){
+      if (home){ koTeams.add(home); bump(res, home, STAGE_BASE[stage]); }
+      if (away){ koTeams.add(away); bump(res, away, STAGE_BASE[stage]); }
+      if (stage === "LAST_32"){ if (home) r32Slots++; if (away) r32Slots++; }
+    }
+
+    // settling finished knockout matches
+    if (m.status === "FINISHED" && stage && stage !== "GROUP_STAGE"){
+      const winner = m.winner === "HOME_TEAM" ? home : m.winner === "AWAY_TEAM" ? away : null;
+      const loser  = m.winner === "HOME_TEAM" ? away : m.winner === "AWAY_TEAM" ? home : null;
+      if (stage === "FINAL"){
+        if (winner && res[winner]) bump(res, winner, "winner");
+        if (loser && res[loser]) res[loser].eliminated = true;
+      } else if (stage === "THIRD_PLACE"){
+        if (winner && res[winner]) bump(res, winner, "third");
+        if (winner && res[winner]) res[winner].eliminated = true;
+        if (loser && res[loser]) res[loser].eliminated = true;
+      } else {
+        if (loser && res[loser]) res[loser].eliminated = true;
+      }
+    }
+  }
+
+  // group-stage eliminations: only once the full round-of-32 bracket is named
+  if (r32Slots >= 32){
+    for (const t of Object.keys(res)){
+      if (!koTeams.has(t)){ res[t].finish = "group"; res[t].eliminated = true; }
+    }
+  }
+  return res;
+}
+function applyOverrides(res){
+  for (const [t, g] of Object.entries(MANUAL_OVERRIDES.goals || {}))
+    if (res[t]) res[t].goals = g;
+  for (const [t, f] of Object.entries(MANUAL_OVERRIDES.finish || {}))
+    if (res[t]){ res[t].finish = f; res[t].eliminated = f !== "winner"; }
+  return res;
+}
+
+/* ---------- app state + load ---------- */
+const STATE = { results: applyOverrides(blankResults()), source: "loading", fetched: null };
+
+function teamResult(t){ return STATE.results[t] || { goals:0, finish:null, eliminated:false }; }
+function teamPoints(t){
+  const r = teamResult(t);
+  return (r.finish ? FINISH_PTS[r.finish] : 0) + r.goals * 0.25;
+}
+function ownerOf(t){
+  for (const [p, teams] of Object.entries(PICKS)) if (teams.includes(t)) return p;
+  return null;
+}
+function awardPointsFor(playerTeams){
+  let pts = 0;
+  for (const a of AWARDS) if (playerTeams.includes(a.team)) pts += AWARD_PTS[a.award];
+  return pts;
+}
+function fmt(n){
+  return (Math.round(n * 100) / 100).toLocaleString("en-AU", { maximumFractionDigits: 2 });
+}
+
+async function loadLive(){
+  const badge = document.getElementById("feedBadge");
+  try {
+    const r = await fetch("/api/scores");
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    if (!data.matches) throw new Error();
+    STATE.results = applyOverrides(computeFromMatches(data.matches));
+    STATE.source = "live";
+    STATE.fetched = data.fetched;
+    const when = new Date(data.fetched).toLocaleString("en-AU", { weekday:"short", hour:"numeric", minute:"2-digit" });
+    badge.textContent = "Live scores · updated " + when;
+    badge.classList.add("live");
+  } catch {
+    STATE.source = "manual";
+    badge.textContent = "Live feed unavailable — showing manual data";
+    badge.classList.remove("live");
+  }
+  renderLadder();
+  renderTeams();
+}
+
+/* ---------- ladder ---------- */
+function renderLadder(){
+  const body = document.getElementById("ladderBody");
+  document.getElementById("ladderSub").textContent = STATUS_NOTE;
+  const rows = Object.keys(PICKS).map(p => {
+    const teams = PICKS[p];
+    let finishPts = 0, goalPts = 0;
+    for (const t of teams){
+      const r = teamResult(t);
+      finishPts += r.finish ? FINISH_PTS[r.finish] : 0;
+      goalPts += r.goals * 0.25;
+    }
+    const awardPts = awardPointsFor(teams);
+    return { p, teams, finishPts, goalPts, awardPts, total: finishPts + goalPts + awardPts };
+  }).sort((a, b) => b.total - a.total);
+
+  body.innerHTML = rows.map((r, i) => {
+    const chips = r.teams.map(t => {
+      const res = teamResult(t);
+      const cls = res.finish === "winner" ? " champ" : res.eliminated ? " out" : "";
+      return `<span class="chip${cls}">${t}<b>${fmt(teamPoints(t))}</b></span>`;
+    }).join("");
+    return `<div class="rung${i === 0 ? " leader" : ""}">
+      <div class="pos">${i + 1}</div>
+      <div class="pname">${r.p}</div>
+      <div class="ptotal">${fmt(r.total)}</div>
+      <div class="pbreak">
+        <span>Finishes ${fmt(r.finishPts)}</span>
+        <span>Goals ${fmt(r.goalPts)}</span>
+        <span>Awards ${fmt(r.awardPts)}</span>
+      </div>
+      <div class="pteams">${chips}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- team board ---------- */
+function renderTeams(){
+  const body = document.getElementById("teamsBody");
+  body.innerHTML = Object.entries(GROUPS).map(([g, teams]) => {
+    const lis = teams.map(t => {
+      const o = ownerOf(t);
+      const res = teamResult(t);
+      const badge = o
+        ? `<span class="owner">${o.slice(0, 6)}</span>`
+        : `<span class="owner free">free</span>`;
+      const pts = teamPoints(t);
+      return `<li class="${res.eliminated && res.finish !== "winner" ? "out" : ""}">
+        <span class="tname">${t}${pts ? ` <b>${fmt(pts)}</b>` : ""}</span>${badge}</li>`;
+    }).join("");
+    return `<div class="grp"><h3>Group ${g}</h3><ul>${lis}</ul></div>`;
+  }).join("");
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("on"));
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("on"));
+    btn.classList.add("on");
+    document.getElementById(btn.dataset.page).classList.add("on");
+  });
+});
+
+renderLadder();
+renderTeams();
+loadLive();
+</script>
+</body>
+</html>
