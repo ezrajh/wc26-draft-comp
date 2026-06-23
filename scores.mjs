@@ -9,23 +9,25 @@ export default async () => {
     return json({ error: "FOOTBALL_DATA_TOKEN environment variable is not set in Netlify." }, 500);
   }
 
-  let upstream;
+  const headers = { "X-Auth-Token": token };
+  let matchRes, standRes;
   try {
-    upstream = await fetch("https://api.football-data.org/v4/competitions/WC/matches", {
-      headers: { "X-Auth-Token": token },
-    });
+    [matchRes, standRes] = await Promise.all([
+      fetch("https://api.football-data.org/v4/competitions/WC/matches", { headers }),
+      fetch("https://api.football-data.org/v4/competitions/WC/standings", { headers }),
+    ]);
   } catch {
     return json({ error: "Could not reach football-data.org." }, 502);
   }
 
-  if (!upstream.ok) {
-    return json({ error: "football-data.org responded with " + upstream.status }, 502);
+  if (!matchRes.ok) {
+    return json({ error: "football-data.org responded with " + matchRes.status }, 502);
   }
 
-  const data = await upstream.json();
+  const matchData = await matchRes.json();
 
-  // Trim the payload to just what the ladder needs.
-  const matches = (data.matches || []).map((m) => ({
+  // Trim matches to just what the ladder and bracket need.
+  const matches = (matchData.matches || []).map((m) => ({
     stage: m.stage,
     status: m.status,
     home: m.homeTeam && m.homeTeam.name,
@@ -35,8 +37,31 @@ export default async () => {
     utcDate: m.utcDate,
   }));
 
+  // Group standings — one table per group. Tolerate a missing/failed call.
+  let standings = [];
+  if (standRes && standRes.ok) {
+    const standData = await standRes.json();
+    standings = (standData.standings || [])
+      .filter((s) => s.type === "TOTAL" && s.group)
+      .map((s) => ({
+        group: s.group,
+        table: (s.table || []).map((row) => ({
+          position: row.position,
+          team: row.team && row.team.name,
+          played: row.playedGames,
+          won: row.won,
+          draw: row.draw,
+          lost: row.lost,
+          gf: row.goalsFor,
+          ga: row.goalsAgainst,
+          gd: row.goalDifference,
+          points: row.points,
+        })),
+      }));
+  }
+
   return json(
-    { fetched: new Date().toISOString(), matches },
+    { fetched: new Date().toISOString(), matches, standings },
     200,
     { "cache-control": "public, s-maxage=300, stale-while-revalidate=600" }
   );
