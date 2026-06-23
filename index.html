@@ -665,6 +665,51 @@ function renderLadder(){
   }).join("");
 }
 
+/* ---------- compute group standings from match results ----------
+   The free API tier doesn't expose the WC standings endpoint, so we
+   build the tables ourselves from finished group matches.
+   Tie-break: points, then goal difference, then goals for, then name. */
+function computeStandings(matches){
+  const tables = {};
+  for (const [g, teams] of Object.entries(GROUPS)){
+    tables[g] = {};
+    for (const t of teams)
+      tables[g][t] = { team: t, played: 0, won: 0, draw: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 };
+  }
+  const groupOf = (t) => {
+    for (const [g, teams] of Object.entries(GROUPS)) if (teams.includes(t)) return g;
+    return null;
+  };
+
+  for (const m of matches){
+    if (normStage(m.stage) !== "GROUP_STAGE") continue;
+    if (m.status !== "FINISHED") continue; // only count completed games in the table
+    const home = canonTeam(m.home), away = canonTeam(m.away);
+    if (!home || !away) continue;
+    const g = groupOf(home);
+    if (!g || !tables[g][home] || !tables[g][away]) continue;
+    const hs = (m.ft && m.ft.home != null) ? m.ft.home : 0;
+    const as = (m.ft && m.ft.away != null) ? m.ft.away : 0;
+    const H = tables[g][home], A = tables[g][away];
+    H.played++; A.played++;
+    H.gf += hs; H.ga += as; A.gf += as; A.ga += hs;
+    if (hs > as){ H.won++; H.points += 3; A.lost++; }
+    else if (hs < as){ A.won++; A.points += 3; H.lost++; }
+    else { H.draw++; A.draw++; H.points++; A.points++; }
+  }
+
+  const out = {};
+  for (const [g, m] of Object.entries(tables)){
+    const rows = Object.values(m);
+    for (const r of rows) r.gd = r.gf - r.ga;
+    rows.sort((a, b) =>
+      b.points - a.points || b.gd - a.gd || b.gf - a.gf || a.team.localeCompare(b.team));
+    rows.forEach((r, i) => r.position = i + 1);
+    out[g] = rows;
+  }
+  return out;
+}
+
 /* ---------- team board: owner helper ---------- */
 function ownerTag(t){
   const o = ownerOf(t);
@@ -679,39 +724,22 @@ function renderTeams(){
 /* ---------- group standings ---------- */
 function renderGroups(){
   const wrap = document.getElementById("teamsGroups");
+  const tables = computeStandings(STATE.matches);
 
-  // Build a lookup of live standings rows by group letter.
-  const byGroup = {};
-  for (const s of STATE.standings){
-    const letter = (s.group || "").replace(/[^A-L]/gi, "").toUpperCase().slice(-1);
-    if (letter) byGroup[letter] = s.table;
-  }
-
-  wrap.innerHTML = Object.entries(GROUPS).map(([g, teams]) => {
-    const live = byGroup[g];
-    let rows;
-    if (live && live.length){
-      // order by the live table; map feed names back to our canonical names
-      rows = live.map((r, i) => {
-        const t = canonTeam(r.team) || r.team;
-        const res = teamResult(t);
-        const out = res.eliminated;
-        const cls = out ? "out" : (i < 2 ? "qual" : "");
-        return `<tr class="${cls}">
-          <td>${r.position}</td>
-          <td class="team">${t}${ownerTag(t)}</td>
-          <td>${r.played}</td><td>${r.won}</td><td>${r.draw}</td><td>${r.lost}</td>
-          <td>${r.gd > 0 ? "+" : ""}${r.gd}</td>
-          <td class="pts">${r.points}</td>
-        </tr>`;
-      }).join("");
-    } else {
-      // pre-tournament / no standings yet — just list the four teams
-      rows = teams.map(t => `<tr>
-        <td>–</td><td class="team">${t}${ownerTag(t)}</td>
-        <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="pts">0</td>
-      </tr>`).join("");
-    }
+  wrap.innerHTML = Object.entries(GROUPS).map(([g]) => {
+    const rows = tables[g].map((r, i) => {
+      const t = r.team;
+      const res = teamResult(t);
+      const out = res.eliminated;
+      const cls = out ? "out" : (i < 2 ? "qual" : "");
+      return `<tr class="${cls}">
+        <td>${r.position}</td>
+        <td class="team">${t}${ownerTag(t)}</td>
+        <td>${r.played}</td><td>${r.won}</td><td>${r.draw}</td><td>${r.lost}</td>
+        <td>${r.gd > 0 ? "+" : ""}${r.gd}</td>
+        <td class="pts">${r.points}</td>
+      </tr>`;
+    }).join("");
     return `<div class="stand"><h3>Group ${g}</h3>
       <table>
         <thead><tr><th>#</th><th class="team">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>
