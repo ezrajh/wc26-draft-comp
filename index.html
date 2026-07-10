@@ -447,6 +447,18 @@ const MANUAL_OVERRIDES = {
   },
 };
 
+// 3b. SHOOTOUTS — the free API feed folds penalty-shootout goals into the
+//     final score and doesn't flag them, so list any shootout game here to
+//     correct it. Give the two teams and the real 120-minute score (before
+//     penalties). Only those 120-min goals count; the winner still comes
+//     from the feed. Team names must match the draw (e.g. "DR Congo").
+const SHOOTOUTS = [
+  { teams: ["Germany", "Paraguay"], score120: [1, 1] },
+  { teams: ["Netherlands", "Morocco"], score120: [1, 1] },
+  { teams: ["Australia", "Egypt"], score120: [1, 1] },
+  { teams: ["Switzerland", "Colombia"], score120: [0, 0] },
+];
+
 // 4. Optional banter line shown under the ladder heading.
 const STATUS_NOTE = "Free agents: Qatar, Haiti, Curaçao, Tunisia, Cape Verde, Iraq, Uzbekistan, Panama.";
 
@@ -522,6 +534,17 @@ const STAGE_BASE = { LAST_32:"r32", LAST_16:"r16", QUARTER_FINALS:"qf", SEMI_FIN
 // never the penalty shootout. football-data folds shootout goals into
 // fullTime, so when a match went to penalties we rebuild from the parts.
 function countableGoals(m){
+  const home = canonTeam(m.home), away = canonTeam(m.away);
+
+  // Manual shootout correction takes priority — used when the feed folds
+  // shootout goals into the score without flagging duration.
+  for (const s of SHOOTOUTS){
+    const [t1, t2] = s.teams;
+    if (home === t1 && away === t2) return { home: s.score120[0], away: s.score120[1] };
+    if (home === t2 && away === t1) return { home: s.score120[1], away: s.score120[0] };
+  }
+
+  // Feed-flagged shootout: use regulation + extra time from the parts.
   if (m.duration === "PENALTY_SHOOTOUT"){
     const reg = m.regular || { home: 0, away: 0 };
     const ext = m.extra || { home: 0, away: 0 };
@@ -796,11 +819,19 @@ function renderBracket(){
       const home = canonTeam(m.home) || m.home || "TBD";
       const away = canonTeam(m.away) || m.away || "TBD";
       const done = m.status === "FINISHED";
-      const hs = m.ft && m.ft.home != null ? m.ft.home : "";
-      const as = m.ft && m.ft.away != null ? m.ft.away : "";
+      // Is this a shootout? Either the feed flags it, or it's in our override list.
+      const inOverride = SHOOTOUTS.some(s => {
+        const [t1, t2] = s.teams;
+        return (home === t1 && away === t2) || (home === t2 && away === t1);
+      });
+      const isPens = m.duration === "PENALTY_SHOOTOUT" || inOverride;
+      // Show the 120-minute score (countableGoals), not the shootout-inflated one.
+      const g = done ? countableGoals(m) : null;
+      const hs = g ? g.home : "";
+      const as = g ? g.away : "";
       const homeWin = done && m.winner === "HOME_TEAM";
       const awayWin = done && m.winner === "AWAY_TEAM";
-      const stat = done ? "Full time" :
+      const stat = done ? (isPens ? "Full time (pens)" : "Full time") :
         ["IN_PLAY","PAUSED","LIVE"].includes(m.status) ? "Live" :
         m.utcDate ? new Date(m.utcDate).toLocaleString("en-AU",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}) : "";
       return `<div class="tie">
