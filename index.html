@@ -518,6 +518,21 @@ function normStage(s){
 const STAGE_BASE = { LAST_32:"r32", LAST_16:"r16", QUARTER_FINALS:"qf", SEMI_FINALS:"fourth", FINAL:"runnerup" };
 
 /* ---------- compute results from the match feed ---------- */
+// Returns the goals that count toward scoring: regulation + extra time,
+// never the penalty shootout. football-data folds shootout goals into
+// fullTime, so when a match went to penalties we rebuild from the parts.
+function countableGoals(m){
+  if (m.duration === "PENALTY_SHOOTOUT"){
+    const reg = m.regular || { home: 0, away: 0 };
+    const ext = m.extra || { home: 0, away: 0 };
+    return {
+      home: (reg.home || 0) + (ext.home || 0),
+      away: (reg.away || 0) + (ext.away || 0),
+    };
+  }
+  const ft = m.ft || { home: 0, away: 0 };
+  return { home: ft.home || 0, away: ft.away || 0 };
+}
 function blankResults(){
   const r = {};
   for (const teams of Object.values(GROUPS)) for (const t of teams)
@@ -538,10 +553,13 @@ function computeFromMatches(matches){
     const home = canonTeam(m.home), away = canonTeam(m.away);
     const counted = ["FINISHED","IN_PLAY","PAUSED","LIVE"].includes(m.status);
 
-    // goals — 120-minute score, shootout excluded
-    if (counted && m.ft){
-      if (home && res[home]) res[home].goals += (m.ft.home || 0);
-      if (away && res[away]) res[away].goals += (m.ft.away || 0);
+    // goals — 120-minute score only, penalty-shootout goals excluded.
+    // The feed folds shootout goals into fullTime, so for a match decided
+    // on penalties we use regularTime + extraTime instead.
+    if (counted){
+      const g = countableGoals(m);
+      if (home && res[home]) res[home].goals += g.home;
+      if (away && res[away]) res[away].goals += g.away;
     }
 
     // banking stage-reached points
