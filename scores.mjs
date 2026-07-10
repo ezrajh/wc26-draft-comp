@@ -33,7 +33,10 @@ export default async () => {
     home: m.homeTeam && m.homeTeam.name,
     away: m.awayTeam && m.awayTeam.name,
     winner: m.score && m.score.winner,
+    duration: m.score && m.score.duration,
     ft: m.score && m.score.fullTime,
+    regular: m.score && m.score.regularTime,
+    extra: m.score && m.score.extraTime,
     utcDate: m.utcDate,
   }));
 
